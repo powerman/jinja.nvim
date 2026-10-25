@@ -1,9 +1,4 @@
---[[ Highlighting of Jinja templates with custom delimiters ]]
---
---  Treesitter jinja parser supports only default delimiters,
---  so for templates with custom delimiters
---  the inner language is highlighted by its own treesitter parser,
---  and Jinja tags are highlighted on top of it.
+--[[ Highlighting of Jinja tags on top of the inner language ]]
 --
 --  To highlight tags the buffer text is masked before parsing it with the jinja parser:
 --  text outside of tags is replaced by spaces
@@ -86,22 +81,18 @@ function M.mask(text, delims)
     end
 end
 
--- Returns highlights for Jinja tags in lines, grouped by row.
--- Without jinja treesitter parser only tag background is highlighted.
+-- Returns a function converting offsets in `table.concat(lines, '\n')` to positions.
+-- Offset of the end of the trailing newline is converted to the start of the next row.
 ---@param lines string[]
----@param delims JinjaDelimiters
----@return table<integer, _JinjaHighlight[]>
-function M.highlights(lines, delims)
-    local text = table.concat(lines, '\n')
-    local masked, tags = M.mask(text, delims)
-
+---@return fun(offset: integer): integer, integer
+function M.positions(lines)
     local line_starts = { 1 }
-    for i = 1, #lines - 1 do
+    for i = 1, #lines do
         line_starts[i + 1] = line_starts[i] + #lines[i] + 1
     end
     ---@param offset integer 1-based.
     ---@return integer row, integer col 0-based.
-    local function position(offset)
+    return function(offset)
         local lo, hi = 1, #line_starts
         while lo < hi do
             local mid = math.floor((lo + hi + 1) / 2)
@@ -113,6 +104,17 @@ function M.highlights(lines, delims)
         end
         return lo - 1, offset - line_starts[lo]
     end
+end
+
+-- Returns highlights for Jinja tags in lines, grouped by row.
+-- Without jinja treesitter parser only tag background is highlighted.
+---@param lines string[]
+---@param delims JinjaDelimiters
+---@return table<integer, _JinjaHighlight[]>
+function M.highlights(lines, delims)
+    local text = table.concat(lines, '\n')
+    local masked, tags = M.mask(text, delims)
+    local position = M.positions(lines)
 
     local rows = {}
     local function add(from, to, hl)
@@ -191,7 +193,7 @@ local function register()
     augroup = vim.api.nvim_create_augroup('JinjaOverlay', { clear = true })
     vim.api.nvim_set_decoration_provider(ns, {
         on_win = function(_, _, buf)
-            if not attached[buf] or vim.bo[buf].filetype ~= '_jinja' then
+            if not attached[buf] then
                 return false
             end
             local tick = vim.api.nvim_buf_get_changedtick(buf)
@@ -217,8 +219,7 @@ local function register()
     })
 end
 
--- Enables highlighting of Jinja tags with given delimiters in the buffer
--- while it has `_jinja` filetype.
+-- Enables highlighting of Jinja tags with given delimiters in the buffer.
 ---@param buf integer
 ---@param delims JinjaDelimiters
 function M.attach(buf, delims)
@@ -230,9 +231,17 @@ function M.attach(buf, delims)
         group = augroup,
         buffer = buf,
         callback = function()
-            attached[buf], cache[buf] = nil, nil
+            M.detach(buf)
         end,
     })
+end
+
+---@param buf integer
+function M.detach(buf)
+    attached[buf], cache[buf] = nil, nil
+    if augroup then
+        vim.api.nvim_clear_autocmds { group = augroup, buffer = buf }
+    end
 end
 
 return M

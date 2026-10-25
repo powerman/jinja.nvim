@@ -35,15 +35,14 @@ language of the template output (inner language) detected by file name without
 ==============================================================================
 2. Features                                                   *jinja-features*
 
-- Templates with default delimiters (filetype `jinja`):
-    - Jinja tags are highlighted by treesitter jinja parser.
-    - Inner language is injected into text outside of tags and into raw blocks.
-- Templates with custom delimiters (filetype `_jinja`):
-    - Inner language is highlighted by its own treesitter parser.
-    - Jinja tags are highlighted on top of it using treesitter jinja parser.
-    - Custom delimiters are configured per directory.
+- Templates get filetype `<inner>.jinja` (e.g. `yaml.jinja`),
+    so inner language features keep working like in usual files:
+    its ftplugin, treesitter highlighting, folds, indentation, textobjects, etc.
+- Jinja tags are hidden from inner language parser and highlighted on top of it.
+- Custom delimiters are configured per directory.
 - Whole Jinja tags are captured as `@jinja.tag` (e.g. to add a background).
-- Sets `commentstring` to Jinja comment.
+- Templates without known inner language get filetype `jinja`
+    and `commentstring` set to Jinja comment.
 - Starts treesitter highlighting by itself.
 
 
@@ -159,24 +158,47 @@ Example. Use a light background for tags with tokyonight.nvim
 ==============================================================================
 8. How it works                                           *jinja-how-it-works*
 
-Treesitter parser of a buffer is chosen by its filetype (e.g. for folds and
-indentation), so templates with custom delimiters need a separate filetype
-`_jinja` to use inner language parser instead of jinja parser.
+Treesitter features (folds, indentation, textobjects, etc.) use the parser
+chosen by filetype, which is the first part of a compound filetype
+(e.g. `yaml` for `yaml.jinja`). So the root parser of a template buffer is the
+inner language parser, but it parses only the text outside of Jinja tags (using
+Neovim private API `LanguageTree:set_included_regions()`).
 
-To highlight tags in `_jinja` buffers the buffer text is masked before parsing
-it with jinja parser: text outside of tags is replaced by spaces and custom
-delimiters are replaced by default ones (padded by spaces if needed).
+To highlight tags the buffer text is masked before parsing it with jinja
+parser: text outside of tags is replaced by spaces and custom delimiters are
+replaced by default ones (padded by spaces if needed).
+
+Other tools supporting compound filetypes (e.g. conform.nvim, nvim-lint) use
+their inner language tools for templates, which see Jinja tags. Inner language
+formatters either fail or break formatting of tags, so it’s better to disable
+them for templates. E.g. conform.nvim checks `jinja` before the inner language,
+but ignores empty tables:
+
+>lua
+    require('conform').setup {
+        formatters_by_ft = {
+            jinja = function()
+                return {}
+            end,
+        },
+    }
+<
+
+LSP clients attach only to the exact filetypes listed in their config, so
+e.g. to use yamlls or jinja-lsp for templates add `yaml.jinja` to its
+`filetypes`.
 
 
 ==============================================================================
 9. Limitations                                             *jinja-limitations*
 
-- Templates with custom delimiters:
-    - Inner language parser sees Jinja tags as a text,
-        so choose delimiters which won’t break inner language syntax (e.g. look like comments).
-    - End delimiter inside a string in a tag (e.g. `#= '=#' =#`) ends the tag.
-    - Line statements and line comments are not supported.
-- Indentation is not provided.
+- Inner language parser sees the text without Jinja tags,
+    so a tag used as a value may break inner language syntax (e.g. `k = {{ x }}` in TOML).
+- End delimiter inside a string in a tag (e.g. `#= '=#' =#`) ends the tag.
+- Line statements and line comments are not supported.
+- Indentation of Jinja blocks is not provided.
+- Inner filetype detection by content uses the template text,
+    e.g. a file without extension with lines starting with `#` is detected as `conf`.
 
 ==============================================================================
 10. Links                                                        *jinja-links*

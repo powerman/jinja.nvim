@@ -91,12 +91,19 @@ function M.delimiters(path)
 end
 
 ---Returns filetype of the template output, detected by file name without `.jinja`.
----@param buf integer
----@return string|nil
-function M.inner_filetype(buf)
-    local name = vim.api.nvim_buf_get_name(buf):match '^(.+)%.jinja$'
-    return name and vim.filetype.match { filename = name, buf = buf }
+---@param path string
+---@param buf? integer Buffer with the template, used for detection by content.
+---@return string|nil filetype
+---@return fun(buf: integer)|nil on_detect
+function M.inner_filetype(path, buf)
+    local name = path:match '^(.+)%.jinja$'
+    if name then
+        return vim.filetype.match { filename = name, buf = buf }
+    end
 end
+
+---@type table<integer, string>
+local started = {}
 
 ---Starts treesitter highlighting unless it is already started for the same language.
 ---@param buf integer
@@ -104,11 +111,26 @@ end
 function M.start(buf, lang)
     local active = vim.treesitter.highlighter.active[buf]
     if active and active.tree:lang() == lang then
-        return
-    end
-    if lang and vim.treesitter.language.add(lang) then
+        started[buf] = lang
+    elseif lang and vim.treesitter.language.add(lang) then
         vim.treesitter.start(buf, lang)
+        started[buf] = lang
     end
+end
+
+---Disables everything enabled for the template by ftplugin.
+---@param buf integer
+function M.detach(buf)
+    buf = buf == 0 and vim.api.nvim_get_current_buf() or buf
+    require('jinja.overlay').detach(buf)
+    -- Highlighting for a new filetype may be already started by FileType autocommands.
+    local active = vim.treesitter.highlighter.active[buf]
+    local ours = active and active.tree:lang() == started[buf]
+    require('jinja.regions').detach(buf, ours and active.tree or nil)
+    if ours then
+        vim.treesitter.stop(buf)
+    end
+    started[buf] = nil
 end
 
 return M

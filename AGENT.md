@@ -23,8 +23,9 @@ including custom delimiters.
 - `tests/lazy_bootstrap.lua`, `tests/.config/nvim/lazy-lock.json` — Ensures test dependencies.
 - `tests/test_*.lua` — Tests using busted-style `describe`/`it` via `mini.test`
   with `luassert` for assertions.
+- `DESIGN.md` — Chosen approach, its trade-offs and considered alternatives.
 - `lua/` — Plugin source.
-- `plugin/`, `ftdetect/`, `ftplugin/`, `queries/` — Plugin runtime files.
+- `plugin/`, `ftdetect/`, `after/ftplugin/`, `queries/` — Plugin runtime files.
 - `tests/test_integration.lua` — Tests use treesitter parsers and queries
   installed by nvim-treesitter (see `tests/run.lua`).
 

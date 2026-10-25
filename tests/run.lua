@@ -26,7 +26,9 @@ local config = {
             branch = 'main',
             version = false,
             config = function()
-                require('nvim-treesitter').install({ 'jinja', 'yaml' }):wait(300000)
+                require('nvim-treesitter')
+                    .install({ 'bash', 'jinja', 'toml', 'yaml' })
+                    :wait(300000)
             end,
         },
         {

@@ -50,7 +50,7 @@ language of the template output (inner language) detected by file name without
 ==============================================================================
 3. Requirements                                           *jinja-requirements*
 
-- Neovim 0.11+.
+- Neovim 0.12+.
 - Treesitter parsers and highlight queries for `jinja`, `jinja_inline` and inner languages,
     e.g. installed by nvim-treesitter <https://github.com/nvim-treesitter/nvim-treesitter>.
 
@@ -171,7 +171,7 @@ delimiters are replaced by default ones (padded by spaces if needed).
 10. Links                                                        *jinja-links*
 
 1. *License MIT*: https://img.shields.io/badge/license-MIT-royalblue.svg
-2. *Neovim 0.11+*: https://img.shields.io/badge/Neovim-0.11%2B-royalblue?logo=neovim&logoColor=white
+2. *Neovim 0.12+*: https://img.shields.io/badge/Neovim-0.12%2B-royalblue?logo=neovim&logoColor=white
 3. *Lua 5.1*: https://img.shields.io/badge/Lua-5.1-blue
 4. *Test*: https://img.shields.io/github/actions/workflow/status/powerman/jinja.nvim/test.yml?label=test
 5. *Release*: https://img.shields.io/github/v/release/powerman/jinja.nvim?color=blue

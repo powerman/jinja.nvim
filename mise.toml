@@ -3,7 +3,7 @@ lockfile = true # DO NOT FORGET TO `touch mise.lock` if mise.lock does not exist
 
 
 [tools]
-'aqua:neovim/neovim' = ['latest', 'sub-0.1:latest']
+'aqua:neovim/neovim' = 'latest'
 lua = '5.1'
 
 #--- Generate
@@ -130,12 +130,6 @@ run = 'selene .'
 [tasks.'test:latest']
 description = 'Run tests for a whole project with latest Neovim version'
 tools.'aqua:neovim/neovim' = 'latest'
-depends = ['deps:tests:install']
-run = 'nvim -l tests/run.lua --minitest'
-
-[tasks.'test:previous']
-description = 'Run tests for a whole project with previous Neovim version'
-tools.'aqua:neovim/neovim' = 'sub-0.1:latest'
 depends = ['deps:tests:install']
 run = 'nvim -l tests/run.lua --minitest'
 

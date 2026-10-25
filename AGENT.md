@@ -2,7 +2,10 @@
 
 ## Project Context (Reference)
 
-- Minimum Neovim version: 0.10.
+Project "jinja.nvim" - Neovim plugin for treesitter highlighting of Jinja templates,
+including custom delimiters.
+
+- Minimum Neovim version: 0.11.
 - Lua dialect: Lua 5.1. Use `vim.*` APIs, not `io.*` or `os.*`.
 
 ### Structure
@@ -21,6 +24,9 @@
 - `tests/test_*.lua` — Tests using busted-style `describe`/`it` via `mini.test`
   with `luassert` for assertions.
 - `lua/` — Plugin source.
+- `plugin/`, `ftdetect/`, `ftplugin/`, `queries/` — Plugin runtime files.
+- `tests/test_integration.lua` — Tests use treesitter parsers and queries
+  installed by nvim-treesitter (see `tests/run.lua`).
 
 ### Tasks
 

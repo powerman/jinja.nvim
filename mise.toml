@@ -22,6 +22,10 @@ actionlint = 'latest'
 # A blazing-fast modern Lua linter written in Rust.
 'aqua:Kampfkarren/selene' = 'latest'
 
+#--- Test
+# Required by nvim-treesitter to build parsers.
+'aqua:tree-sitter/tree-sitter' = 'latest'
+
 #--- Release
 # A highly customizable Changelog Generator that follows Conventional Commit specifications.
 git-cliff = 'latest'

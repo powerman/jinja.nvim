@@ -22,6 +22,17 @@ local config = {
         { 'luarocks/hererocks', version = false },
         'lunarmodules/luassert',
         {
+            'nvim-treesitter/nvim-treesitter',
+            branch = 'main',
+            version = false,
+            -- Branch main requires Neovim 0.12,
+            -- but installed parsers and queries are also used by tests with Neovim 0.11.
+            cond = vim.fn.has 'nvim-0.12' == 1,
+            config = function()
+                require('nvim-treesitter').install({ 'jinja', 'yaml' }):wait(300000)
+            end,
+        },
+        {
             'nvim-mini/mini.test',
             opts = {
                 collect = {

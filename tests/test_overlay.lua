@@ -100,6 +100,42 @@ describe('mask', function()
         assert.equals('{% raw %} {{ x }}', masked)
         assert.same({ { 1, 10, 'block' }, { 11, 18, 'variable' } }, tags)
     end)
+
+    -- Returns text of tags for readable assertions.
+    local function tag_texts(text, delims)
+        local _, tags = overlay.mask(text, delims)
+        return vim.tbl_map(function(tag)
+            return text:sub(tag[1], tag[2] - 1)
+        end, tags)
+    end
+
+    for _, t in ipairs {
+        {
+            [[start #= 'body =#' ~ '\'=#' =# end.]],
+            { [[#= 'body =#' ~ '\'=#' =#]] },
+        },
+        {
+            [[start #= "body =#" ~ "\"=#" =# end.]],
+            { [[#= "body =#" ~ "\"=#" =#]] },
+        },
+        {
+            [[#{ set raw_str }# start #= body =# end. #{ endset }# #= raw_str =#]],
+            { '#{ set raw_str }#', '#= body =#', '#{ endset }#', '#= raw_str =#' },
+        },
+        {
+            [[start #= 'body =#'|replace('=#', '=#') =# end.]],
+            { [[#= 'body =#'|replace('=#', '=#') =#]] },
+        },
+        { "#= 'multi\nline =#' =# end.", { "#= 'multi\nline =#' =#" } },
+        { [[#{ if x == "}#" }# #= y =#]], { [[#{ if x == "}#" }#]], '#= y =#' } },
+        { [[#% it's %# #= 'x' =#]], { [[#% it's %#]], [[#= 'x' =#]] } },
+        { [[#= 'x =# y]], { [[#= 'x =#]] } },
+        { [[#= x ~ ' =# y]], { [[#= x ~ ' =#]] } },
+    } do
+        it('should skip strings in tags like Jinja: ' .. t[1], function()
+            assert.same(t[2], tag_texts(t[1], custom))
+        end)
+    end
 end)
 
 describe('highlights', function()

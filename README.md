@@ -158,7 +158,6 @@ vim.lsp.config('yamlls', { filetypes = { 'yaml', 'yaml.jinja' } })
 
 - Inner language parser sees the text without Jinja tags,
   so a tag used as a value may break inner language syntax (e.g. `k = {{ x }}` in TOML).
-- Unlike Jinja, end delimiter inside a string in a tag (e.g. `{{ '}}' }}`) ends the tag.
 - Line statements and line comments (disabled in Jinja by default) are not supported.
 - Indentation of Jinja blocks is not provided.
 - Inner filetype detection by content uses the template text,

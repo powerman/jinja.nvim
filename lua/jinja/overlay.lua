@@ -30,6 +30,39 @@ local cache = {}
 ---@field [2] integer End offset (1-based, exclusive).
 ---@field [3] string Kind: block, variable or comment.
 
+-- Returns position of the end delimiter of a tag.
+-- Like Jinja lexer, skips strings (which may contain the end delimiter) if `strings` is true.
+-- Unterminated string is an error in Jinja, so then the first end delimiter is used.
+---@param text string
+---@param close string End delimiter.
+---@param from integer Position after the start delimiter.
+---@param strings boolean
+---@return integer|nil
+local function find_end(text, close, from, strings)
+    local pos = from
+    while true do
+        local s = text:find(close, pos, true)
+        -- Search only before the end delimiter to avoid scanning the rest of text for each tag.
+        local q = strings and s and text:sub(pos, s - 1):find '[\'"]'
+        if not q then
+            return s
+        end
+        q = pos + q - 1
+        local quote = text:sub(q, q)
+        local e = q + 1
+        while true do
+            e = text:find('[\\' .. quote .. ']', e)
+            if not e then
+                return text:find(close, from, true)
+            elseif text:sub(e, e) == quote then
+                break
+            end
+            e = e + 2 -- Skip escaped character.
+        end
+        pos = e + 1
+    end
+end
+
 -- Returns text with everything outside of Jinja tags replaced by spaces (except newlines)
 -- and tag delimiters replaced by default ones, and a list of found tags.
 -- Tag without end delimiter in the rest of text ends at the end of line.
@@ -57,7 +90,8 @@ function M.mask(text, delims)
         local open, close = delims[kind][1], delims[kind][2]
         local default = default_delimiters[kind]
         local from = start + #open
-        local s = text:find(close, from, true)
+        -- Like Jinja lexer, comments end at the first end delimiter.
+        local s = find_end(text, close, from, kind ~= 'comment')
         local to = s or text:find('\n', from, true) or #text + 1
         local stop = s and s + #close or to
         local body = text:sub(from, to - 1)

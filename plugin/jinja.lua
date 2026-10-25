@@ -15,9 +15,7 @@ end, { force = true })
 -- (see queries/jinja/highlights.scm).
 vim.treesitter.query.add_directive('jinja-tag-range!', function(match, _, _, pred, metadata)
     local id = pred[2]
-    local node = match[id]
-    -- Neovim 0.11 may provide a single node instead of a list.
-    node = type(node) == 'table' and node[#node] or node
+    local node = match[id][#match[id]]
     local last = node:next_sibling()
     while last and not last:type():find '%%}$' do
         last = last:next_sibling()
@@ -29,12 +27,3 @@ vim.treesitter.query.add_directive('jinja-tag-range!', function(match, _, _, pre
         metadata[id].range = { sr, sc, er, ec }
     end
 end, { force = true })
-
-local function set_hl()
-    vim.api.nvim_set_hl(0, '@jinja.tag', { default = true, link = 'ColorColumn' })
-end
-set_hl()
-vim.api.nvim_create_autocmd('ColorScheme', {
-    group = vim.api.nvim_create_augroup('Jinja', { clear = true }),
-    callback = set_hl,
-})

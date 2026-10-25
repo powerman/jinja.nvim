@@ -109,6 +109,7 @@ describe('custom delimiters', function()
             [[ require('jinja').setup { delimiters = { { dir = ..., variable = { '#=', '=#' } } } } ]],
             { dir }
         )
+        child.api.nvim_set_hl(0, '@jinja.tag', { bg = '#ff0000' })
         edit(dir .. '/a.yml.jinja', { 'k: 1 # a #= x =#' })
     end)
 

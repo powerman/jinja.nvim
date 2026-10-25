@@ -24,7 +24,7 @@ output (inner language) detected by file name without `.jinja` (e.g. `config.yml
   - Inner language is highlighted by its own treesitter parser.
   - Jinja tags are highlighted on top of it using treesitter jinja parser.
   - Custom delimiters are configured per directory.
-- Whole Jinja tags are highlighted with `@jinja.tag` (e.g. to add a background).
+- Whole Jinja tags are captured as `@jinja.tag` (e.g. to add a background).
 - Sets `commentstring` to Jinja comment.
 - Starts treesitter highlighting by itself.
 
@@ -100,8 +100,20 @@ require('jinja').setup {
 
 ## Highlighting
 
-Whole Jinja tags are highlighted with `@jinja.tag` group, linked to `ColorColumn` by default.
-Tokens inside tags are highlighted with usual treesitter groups like `@keyword.jinja`.
+Tokens inside Jinja tags are highlighted with usual treesitter groups like `@keyword.jinja`.
+Whole Jinja tags are captured as `@jinja.tag` group, which is not defined by default.
+Define it to make tags stand out, e.g. with a background.
+Like other highlight groups it is cleared on loading a color scheme,
+so define it in your color scheme config
+or in a `ColorScheme` autocommand created before loading a color scheme:
+
+```lua
+vim.api.nvim_create_autocmd('ColorScheme', {
+    callback = function()
+        vim.api.nvim_set_hl(0, '@jinja.tag', { bg = '#2a3448' })
+    end,
+})
+```
 
 Example. Use a light background for tags with
 [tokyonight.nvim](https://github.com/folke/tokyonight.nvim):

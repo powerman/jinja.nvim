@@ -1,5 +1,5 @@
 -- Templates get filetype `<inner>.jinja` (e.g. `yaml.jinja` for `config.yml.jinja`)
--- to keep features of the inner language working (see "How it works" in README.md).
+-- to keep features of the inner language working (see DESIGN.md).
 vim.filetype.add {
     pattern = {
         ['.*%.jinja'] = function(path, buf)

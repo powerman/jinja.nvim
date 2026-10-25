@@ -12,8 +12,9 @@ Neovim plugin for treesitter highlighting of Jinja templates, including custom d
 
 Jinja allows changing tag delimiters (e.g. Copier's `_envops` or Cookiecutter's
 `_jinja2_env_vars`), but treesitter jinja parser supports only default ones.
-This plugin highlights both kinds of templates, together with the language of the template
-output (inner language) detected by file name without `.jinja` (e.g. `config.yml.jinja`).
+This plugin highlights both kinds of templates,
+together with the language of the template output (inner language)
+detected by file name without `.jinja` (e.g. `config.yml.jinja`).
 
 ## Features
 
@@ -125,23 +126,16 @@ require('tokyonight').setup {
 }
 ```
 
-## How it works
+## Other tools
 
-Treesitter features (folds, indentation, textobjects, etc.) use the parser chosen by filetype,
-which is the first part of a compound filetype (e.g. `yaml` for `yaml.jinja`).
-So the root parser of a template buffer is the inner language parser,
-but it parses only the text outside of Jinja tags
-(using Neovim private API `LanguageTree:set_included_regions()`).
+Plugins supporting compound filetypes (e.g. conform.nvim, nvim-lint)
+use tools of the inner language for templates, but these tools don't know about Jinja tags.
+E.g. formatters may fail or break formatting of tags,
+and linters may report errors for tags.
 
-To highlight tags the buffer text is masked before parsing it with jinja parser:
-text outside of tags is replaced by spaces
-and custom delimiters are replaced by default ones (padded by spaces if needed).
-
-Other tools supporting compound filetypes (e.g. conform.nvim, nvim-lint)
-use their inner language tools for templates, which see Jinja tags.
-Inner language formatters either fail or break formatting of tags,
-so it's better to disable them for templates.
-E.g. conform.nvim checks `jinja` before the inner language, but ignores empty tables:
+With [conform.nvim](https://github.com/stevearc/conform.nvim)
+formatters can be disabled for templates by a function
+(an empty table is ignored and formatters of the inner language are used instead):
 
 ```lua
 require('conform').setup {
@@ -153,15 +147,19 @@ require('conform').setup {
 }
 ```
 
-LSP clients attach only to the exact filetypes listed in their config,
-so e.g. to use yamlls or jinja-lsp for templates add `yaml.jinja` to its `filetypes`.
+LSP servers and `FileType` autocommands work only for exact filetypes,
+so to use them for templates add template filetypes to their configs, e.g.:
+
+```lua
+vim.lsp.config('yamlls', { filetypes = { 'yaml', 'yaml.jinja' } })
+```
 
 ## Limitations
 
 - Inner language parser sees the text without Jinja tags,
   so a tag used as a value may break inner language syntax (e.g. `k = {{ x }}` in TOML).
-- End delimiter inside a string in a tag (e.g. `#= '=#' =#`) ends the tag.
-- Line statements and line comments are not supported.
+- Unlike Jinja, end delimiter inside a string in a tag (e.g. `{{ '}}' }}`) ends the tag.
+- Line statements and line comments (disabled in Jinja by default) are not supported.
 - Indentation of Jinja blocks is not provided.
 - Inner filetype detection by content uses the template text,
   e.g. a file without extension with lines starting with `#` is detected as `conf`.

@@ -170,6 +170,11 @@ It can be enabled for templates with
 
 ## Implementation notes
 
+- Jinja grammar has hardcoded line comments (`##`) and partially line statements (`#`),
+  which are disabled in Jinja by default.
+  With jinja root parser they hide e.g. `## Heading` comments of the inner language,
+  but text outside of tags is masked before parsing it with jinja parser.
+
 - Inner filetype is detected in `ftdetect/` instead of a `FileType` autocommand,
   because detection by content (e.g. by shebang for `*.sh.jinja`) doesn't work
   when `did_filetype()` is true.

@@ -1,11 +1,12 @@
 -- Jinja template with filetype `<inner>.jinja` or just `jinja` if inner language is unknown.
--- See "How it works" in README.md.
+-- See DESIGN.md.
 
 local jinja = require 'jinja'
 local buf = vim.api.nvim_get_current_buf()
 local custom = jinja.delimiters(vim.api.nvim_buf_get_name(buf))
 local delims = custom or jinja.default_delimiters
-local lang = vim.treesitter.language.get_lang(vim.bo.filetype)
+-- Filetype is never empty here, so there is always a language.
+local lang = assert(vim.treesitter.language.get_lang(vim.bo.filetype))
 
 -- It's an after-ftplugin to run after ftplugins of the inner language and of Jinja
 -- (since Neovim 0.13 its jinja ftplugin sets Jinja commentstring).
